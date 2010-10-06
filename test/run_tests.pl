@@ -24,7 +24,7 @@ chdir $Bin;
 
 # remove all test outputs
 `rm -f /tmp/get_var-*`;
-`rm -rf /etc/puppet/var_dev/get_var`;
+`rm -rf /etc/puppet/var_dev/test_module`;
 set_environment();
 
 my @tests = (
@@ -35,9 +35,9 @@ my @tests = (
             set_environment();
 
             my ( $rc, $ouput ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_secret("get_var", "password")
+$foo = get_secret("test_module", "password")
 file { "/tmp/get_var-secret1.txt":
     content => $foo
 }
@@ -56,9 +56,9 @@ PUPPET
             set_environment('production');
 
             my ( $rc, $ouput ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_secret("get_var", "password")
+$foo = get_secret("test_module", "password")
 file { "/tmp/get_var-secret1.txt":
     content => $foo
 }
@@ -71,14 +71,14 @@ PUPPET
         code  => sub {
             my $t = 'prod secret works';
 
-            `mkdir -p /etc/puppet/secret/get_var`;
-            `echo "password: prodsecretvalue" > /etc/puppet/secret/get_var/main.yml`;
+            `mkdir -p /etc/puppet/secret/test_module`;
+            `echo "password: prodsecretvalue" > /etc/puppet/secret/test_module/main.yml`;
             set_environment('production');
 
             my ( $rc, $ouput ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_secret("get_var", "password")
+$foo = get_secret("test_module", "password")
 file { "/tmp/get_var-secret1.txt":
     content => $foo
 }
@@ -97,10 +97,10 @@ PUPPET
         set_environment();
 
         run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
 $var = 3
-$foo = get_var("get_var", "${var}key")
+$foo = get_var("test_module", "${var}key")
 notice($foo)
 file { "/tmp/get_var-dev6.txt":
     content => $foo
@@ -116,9 +116,9 @@ PUPPET
         set_environment();
 
         run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "key")
+$foo = get_var("test_module", "key")
 file { "/tmp/get_var-dev1.txt":
     content => $foo
 }
@@ -133,13 +133,13 @@ PUPPET
 
             set_environment();
 
-            `mkdir -p /etc/puppet/var_dev/get_var`;
-            `echo "key: overridevalue" > /etc/puppet/var_dev/get_var/main.yml`;
+            `mkdir -p /etc/puppet/var_dev/test_module`;
+            `echo "key: overridevalue" > /etc/puppet/var_dev/test_module/main.yml`;
 
             my ( $rc, $ouput ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "key")
+$foo = get_var("test_module", "key")
 file { "/tmp/get_var-dev1.txt":
     content => $foo
 }
@@ -149,7 +149,7 @@ PUPPET
             is( $contents, 'overridevalue', $t );
             is( $rc, 0, $t );
 
-            `rm -rf /etc/puppet/var_dev/get_var`;
+            `rm -rf /etc/puppet/var_dev/test_module`;
             }
     },
     {   count => 2,
@@ -159,9 +159,9 @@ PUPPET
             set_environment('production');
 
             my ( $rc, $ouput ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "key")
+$foo = get_var("test_module", "key")
 file { "/tmp/get_var-dev1.txt":
     content => $foo
 }
@@ -179,9 +179,9 @@ PUPPET
         set_environment();
 
         run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "multikey")
+$foo = get_var("test_module", "multikey")
 file { "/tmp/get_var-dev2.txt":
     content => $foo
 }
@@ -205,9 +205,9 @@ LONG
         set_environment();
 
         run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "keys")
+$foo = get_var("test_module", "keys")
 file { "/tmp/get_var-dev3.txt":
     content => "$foo"
 }
@@ -222,9 +222,9 @@ PUPPET
         set_environment();
 
         run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "hash.keys")
+$foo = get_var("test_module", "hash.keys")
 file { "/tmp/get_var-dev4.txt":
     content => "$foo"
 }
@@ -240,9 +240,9 @@ PUPPET
             set_environment();
 
             my ($rc) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "noexist", "default")
+$foo = get_var("test_module", "noexist", "default")
 file { "/tmp/get_var-dev5.txt":
     content => $foo
 }
@@ -260,14 +260,14 @@ PUPPET
             set_environment();
 
             my ( $rc, $output ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "noexist")
+$foo = get_var("test_module", "noexist")
 PUPPET
 
             is( $rc, 1, $t );
             ok( $output
-                    =~ /Unable to find var for noexist in module get_var/,
+                    =~ /Unable to find var for noexist in module test_module/,
                 "$t - error"
             );
             }
@@ -279,14 +279,14 @@ PUPPET
             set_environment();
 
             my ( $rc, $output ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "noexist.foo.bar")
+$foo = get_var("test_module", "noexist.foo.bar")
 PUPPET
 
             is( $rc, 1, $t );
             ok( $output
-                    =~ /Unable to find var for noexist.foo.bar in module get_var/,
+                    =~ /Unable to find var for noexist.foo.bar in module test_module/,
                 "$t - error"
             );
             }
@@ -298,9 +298,9 @@ PUPPET
             set_environment();
 
             my ( $rc, $output ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "domain.com.key")
+$foo = get_var("test_module", "domain.com.key")
 file { "/tmp/get_var-dev3.txt":
     content => $foo
 }
@@ -318,9 +318,9 @@ PUPPET
             set_environment();
 
             my ( $rc, $output ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_var("get_var", "domain.domain.com.key")
+$foo = get_var("test_module", "domain.domain.com.key")
 file { "/tmp/get_var-dev3.txt":
     content => $foo
 }
@@ -338,9 +338,9 @@ PUPPET
             set_environment();
 
             my ( $rc, $output ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_secret("get_var", "noexist")
+$foo = get_secret("test_module", "noexist")
 PUPPET
 
             is( $rc, 1, $t );
@@ -356,9 +356,9 @@ PUPPET
             set_environment('production');
 
             my ( $rc, $output ) = run_puppet(<<'PUPPET');
-include "get_var"
+include "test_module"
 
-$foo = get_secret("get_var", "noexist")
+$foo = get_secret("test_module", "noexist")
 PUPPET
 
             is( $rc, 1, $t );

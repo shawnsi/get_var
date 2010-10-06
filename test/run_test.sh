@@ -7,13 +7,13 @@ then
 fi
 
 PWD=`pwd`
-MODULEPATH="$PWD/../..:$PWD/../../../site:$PWD/../../../base"
+MODULEPATH="$PWD/../..:."
 
 LIBDIR=""
 
-if [ -d $PWD/lib ]
+if [ -d $PWD/../lib ]
 then
-	LIBDIR="--libdir $PWD/lib"
+	LIBDIR="--libdir $PWD/../lib"
 fi
 
 echo "MODULEPATH: $MODULEPATH LIBDIR: $LIBDIR"
