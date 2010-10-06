@@ -1,0 +1,3 @@
+class get_var {
+
+}
