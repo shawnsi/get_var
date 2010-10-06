@@ -2,10 +2,10 @@
 
 # The *get_var* function
 
-The *get_var* function's purpose is twofold:
+The *get_var* function's purpose is threefold:
 
 * Use production and development data where appropriate
-* not have passwords and other secret bits in subversion
+* Not have passwords and other secret bits in subversion/git/whatever
 * Manage multiple similar configurations (same manifest, different systems)
 
 ## Puppet code examples
