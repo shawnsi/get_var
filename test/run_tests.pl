@@ -22,10 +22,8 @@ WARNING
 
 chdir $Bin;
 
-# remove all test outputs
-`rm -f /tmp/get_var-*`;
-`rm -rf /etc/puppet/var_dev/test_module`;
-set_environment();
+# remove all test output
+clean_all_test_output();
 
 my @tests = (
     {   count => 2,
@@ -373,6 +371,11 @@ plan tests => $tests;
 
 ( ref($_) eq 'HASH' ? $_->{code}->() : $_->() ) for @tests;
 
+# remove all test output
+clean_all_test_output();
+
+exit;
+
 sub run_puppet {
     my $code = shift;
 
@@ -395,4 +398,10 @@ sub set_environment {
     else {
         `rm -f /etc/puppet/master.yml`;
     }
+}
+
+sub clean_all_test_output {
+    `rm -f /tmp/get_var-*`;
+    `rm -rf /etc/puppet/var_dev/test_module`;
+    set_environment();
 }
