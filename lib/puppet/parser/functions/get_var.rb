@@ -44,7 +44,7 @@ Puppet::Parser::Functions::newfunction(:get_var, :type => :rvalue) do |vals|
   end
 
   # look for the module in each directory in modulepath
-  paths = Puppet[:modulepath].split(":").reverse.map do |dir|
+  paths = Puppet[:modulepath].split(":").map do |dir|
     "#{dir}/#{modulename}/#{var_path}/#{path}.yml"
   end
   if environment == 'development'

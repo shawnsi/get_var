@@ -4,12 +4,27 @@ use strict;
 use warnings;
 use Data::Dumper;
 use FindBin qw($Bin);
+use Cwd qw/ abs_path getcwd /;
+use File::Temp qw/ tempdir cleanup /;
+use File::Basename;
 
 # test script;
 use Test::More;
 use File::Slurp;
 
-if ( shift ne '-y' ) {
+# Make sure we are in the 'test' directory.
+chdir( dirname( abs_path( $0 ) ) );
+
+# We put our temp dirs at the begining of our module path so that we
+# decrease the risk of leaving cruft behind...
+my @modulepath = (
+    tempdir( getcwd() . "/pathXXXX", CLEANUP => 1 ) ,
+    tempdir( getcwd() . "/pathXXXX", CLEANUP => 1 ) ,
+    abs_path( getcwd() . "/../../" ),
+    abs_path( getcwd() ),
+);
+
+if ( ! scalar( @ARGV ) or shift ne '-y' ) {
     print <<WARNING;
 ===========================================================================
 This will mess with /etc/puppet/secret and /etc/puppet/var_dev!!
@@ -205,14 +220,15 @@ LONG
         run_puppet(<<'PUPPET');
 include "test_module"
 
-$foo = get_var("test_module", "keys")
+$array = get_var("test_module", "keys")
+$foo = inline_template('<%= array.join("|") %>')
 file { "/tmp/get_var-dev3.txt":
     content => "$foo"
 }
 PUPPET
 
         my $contents = read_file('/tmp/get_var-dev3.txt');
-        is( $contents, 'domain.comhash3keydomainmultikeykey', $t );
+        is( $contents, 'domain.com|hash|3key|domain|multikey|key', $t );
     },
     sub {
         my $t = 'keys';
@@ -222,14 +238,15 @@ PUPPET
         run_puppet(<<'PUPPET');
 include "test_module"
 
-$foo = get_var("test_module", "hash.keys")
+$array = get_var("test_module", "hash.keys")
+$foo = inline_template('<%= array.join("|") %>')
 file { "/tmp/get_var-dev4.txt":
     content => "$foo"
 }
 PUPPET
 
         my $contents = read_file('/tmp/get_var-dev4.txt');
-        is( $contents, 'key3key1key2', $t );
+        is( $contents, 'key3|key1|key2', $t );
     },
     {   count => 2,
         code  => sub {
@@ -364,6 +381,45 @@ PUPPET
             `rm -rf /etc/puppet/secret`;
             }
     },
+    {   count => 8,
+        code  => sub {
+            my $t = 'precedence follows modulepath order';
+            my $module = "test_module_test";
+
+            set_environment('production');
+
+            foreach ( @modulepath ) {
+                my $dir = $_;
+                my $module_dir = $dir . "/" . $module;
+
+                # Create the top level dir if needed and them the module dir
+                # and finally our var dir.
+                mkdir( $module_dir ) or die( $! );
+                mkdir( "$module_dir/var" ) or die ( $! );
+                
+                # Create our var yaml file.
+                `echo "path: $dir" > "$module_dir/var/main.yml"`;
+            }
+
+            foreach ( @modulepath ) {
+                my $dir = $_;
+                my $module_dir = $dir . "/" . $module;
+
+                my ( $rc, $output ) = run_puppet(<<PUPPET);
+\$path = get_var( "$module", "path")
+notice("### found value in \$path ###")
+PUPPET
+
+                is( $rc, 0, $t );
+                ok( $output =~ /### found value in $dir ###/, "$t - $dir" );
+                
+                # Cleanup our mess.
+                unlink( "$module_dir/var/main.yml" ) or dir( $! );
+                rmdir( "$module_dir/var" );
+                rmdir( $module_dir );
+            }
+        }
+    },
 );
 
 our $tests += ( ref($_) eq 'HASH' ? $_->{count} : 1 ) for @tests;
@@ -380,8 +436,10 @@ sub run_puppet {
     my $code = shift;
 
     write_file( 'manifest.pp', $code );
-    my $output = `./run_test.sh manifest.pp 2>&1`;
-    my $rc     = $? >> 8;
+
+    my $command = 'puppet -d --modulepath=' . join( ":", @modulepath ) . ' manifest.pp 2>&1';
+    my $output  = `$command`;
+    my $rc      = $? >> 8;
 
     #diag($output);
 
