@@ -55,7 +55,7 @@ Puppet::Parser::Functions::newfunction(:get_secret, :type => :rvalue) do |vals|
     end
   else
     # look for the module in each directory in modulepath
-    values = Puppet[:modulepath].split(":").map do |dir|
+    values = Puppet::Module.modulepath(Puppet[:environment]).map do |dir|
       # and see if it has a secret.yml file
       module_secret_file = "#{dir}/#{modulename}/secret_dev/#{path}.yml"
       if File.exists?(module_secret_file)
