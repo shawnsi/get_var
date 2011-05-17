@@ -1,1 +1,11 @@
 password: devsecretvalue
+domain.com:
+  key: domain_secret
+domain:
+  com:
+    key: wrong_domain_secret
+  domain.com:
+    key: lower_domain_secret
+domain2:
+  com:
+    key: heirarchical_secret

@@ -228,7 +228,7 @@ file { "/tmp/get_var-dev3.txt":
 PUPPET
 
         my $contents = read_file('/tmp/get_var-dev3.txt');
-        is( $contents, 'domain.com|hash|3key|domain|multikey|key', $t );
+        is( $contents, 'domain.com|domain2|hash|3key|domain|multikey|key', $t );
     },
     sub {
         my $t = 'keys';
@@ -344,6 +344,78 @@ PUPPET
             is( $rc, 0, $t );
             my $contents = read_file('/tmp/get_var-dev3.txt');
             is( $contents, 'lower_domain_key', $t );
+            }
+    },
+    {   count => 2,
+        code  => sub {
+            my $t = 'get_var periods in keys 3 (looks like domain but is not)';
+
+            set_environment();
+
+            my ( $rc, $output ) = run_puppet(<<'PUPPET');
+$foo = get_var("test_module", "domain2.com.key")
+file { "/tmp/get_var-dev3.txt":
+    content => $foo
+}
+PUPPET
+
+            is( $rc, 0, $t );
+            my $contents = read_file('/tmp/get_var-dev3.txt');
+            is( $contents, 'heirarchical_key', $t );
+            }
+    },
+    {   count => 2,
+        code  => sub {
+            my $t = 'get_secret periods in keys';
+
+            set_environment();
+
+            my ( $rc, $output ) = run_puppet(<<'PUPPET');
+$foo = get_secret("test_module", "domain.com.key")
+file { "/tmp/get_secret-dev3.txt":
+    content => $foo
+}
+PUPPET
+
+            is( $rc, 0, $t );
+            my $contents = read_file('/tmp/get_secret-dev3.txt');
+            is( $contents, 'domain_secret', $t );
+            }
+    },
+    {   count => 2,
+        code  => sub {
+            my $t = 'get_secret periods in keys 2';
+
+            set_environment();
+
+            my ( $rc, $output ) = run_puppet(<<'PUPPET');
+$foo = get_secret("test_module", "domain.domain.com.key")
+file { "/tmp/get_secret-dev3.txt":
+    content => $foo
+}
+PUPPET
+
+            is( $rc, 0, $t );
+            my $contents = read_file('/tmp/get_secret-dev3.txt');
+            is( $contents, 'lower_domain_secret', $t );
+            }
+    },
+    {   count => 2,
+        code  => sub {
+            my $t = 'get_secret periods in keys 3 (looks like domain but is not)';
+
+            set_environment();
+
+            my ( $rc, $output ) = run_puppet(<<'PUPPET');
+$foo = get_secret("test_module", "domain2.com.key")
+file { "/tmp/get_secret-dev3.txt":
+    content => $foo
+}
+PUPPET
+
+            is( $rc, 0, $t );
+            my $contents = read_file('/tmp/get_secret-dev3.txt');
+            is( $contents, 'heirarchical_secret', $t );
             }
     },
     {   count => 2,

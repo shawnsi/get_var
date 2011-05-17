@@ -115,15 +115,30 @@ def get_secret_get_value (yaml_file, modulename, identifier)
 end
 
 def get_secret_drill_down (data, ids)
-  return nil unless data
+  return nil unless data && ids.length > 0
 
-  if (ids.length == 1)
-    if (ids[0] == 'keys')
+  id = ""
+  (ids.length - 1).downto(0) do |i|
+    id = ids[0..i].join(".");
+
+    if data.has_key?(id) || i == 0
+      if i < ids.length - 1
+        ids = ids[i + 1 .. ids.length - 1]
+      else
+        ids = []
+      end
+      break
+    end
+  end
+
+  if (ids.length <= 0)
+    if (id == 'keys')
       return data.keys
     else
-      return data[ids[0]]
+      return nil unless data.has_key?(id)
+      return data[id]
     end
   else
-    get_secret_drill_down(data[ids[0]], ids[1..-1])
+    get_secret_drill_down(data[id], ids)
   end
 end

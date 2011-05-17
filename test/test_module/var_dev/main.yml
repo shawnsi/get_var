@@ -20,3 +20,6 @@ domain:
     key: wrong_domain_key
   domain.com:
     key: lower_domain_key
+domain2:
+  com:
+    key: heirarchical_key
