@@ -1,0 +1,15 @@
+v0.2.0 2011-05-18 17:28 (UTC)
+
+    * allow domain names in key for get_secret - Nate Jones (f91a576)
+    * use the module path for the specified puppet env - Michael Johnson (5485c8e)
+    * change precedence order to match puppet's - Michael Johnson (fff7795)
+
+v0.1.0 2010-10-08 18:04 (UTC)
+
+    * adding puppet-module config file (and ignore) - Nate Jones (538f3a0)
+    * added copyright to the README - Nate Jones (bb8e276)
+    * clean up test artifacts before AND after running - Nate Jones (0e56d49)
+    * moving test module information into test dir - Nate Jones (9cd26f6)
+    * doc fixes - Nate Jones (ea8d3b9)
+    * added documentation and an example module - Nate Jones (ede236b)
+    * initial import of code - Nate Jones (5a06efc)
