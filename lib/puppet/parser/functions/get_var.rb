@@ -42,9 +42,6 @@ Puppet::Parser::Functions::newfunction(:get_var, :type => :rvalue) do |vals|
   paths = Puppet::Module.modulepath(Puppet[:environment]).map do |dir|
     "#{dir}/#{modulename}/#{var_path}/#{path}.yml"
   end
-  if environment == 'development'
-    paths.unshift("/etc/puppet/var_dev/#{modulename}/#{path}.yml")
-  end
 
   values = paths.map do |module_secret_file|
     # and see if it has a secret.yml file
@@ -66,27 +63,21 @@ Puppet::Parser::Functions::newfunction(:get_var, :type => :rvalue) do |vals|
   end
 end
 
-# these functions are used here and in get_secret.rb
-def get_var_find_environment ()
-  conf_file = '/etc/puppet/master.yml'
-  if (File.exists?(conf_file))
-    conf = YAML.load_file(conf_file)
-    if (conf['environment'])
-      return conf['environment']
-    end
-  end
-
-  return 'development'
-end
-
 def get_var_get_value (yaml_file, modulename, identifier)
     if File.exists?(yaml_file)
       begin
-        value = get_var_drill_down(YAML.load_file(yaml_file), identifier.split(/\./))
+        yaml_key = identifier.split(/\./).unshift(environment)
+        value = get_var_drill_down(YAML.load_file(yaml_file), yaml_key)
         if value
           return value
         else
-          return nil
+	  yaml_key.shift
+          value = get_var_drill_down(YAML.load_file(yaml_file), yaml_key)
+          if value
+            return value
+          else
+            return nil
+          end
         end
       rescue Puppet::ParseError => e
         raise e
