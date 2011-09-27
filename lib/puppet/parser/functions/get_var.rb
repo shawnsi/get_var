@@ -34,14 +34,9 @@ Puppet::Parser::Functions::newfunction(:get_var, :type => :rvalue) do |vals|
     path = 'main'
   end
 
-  # check /etc/puppet/master.yml to see what environment we're in
-  environment = get_var_find_environment()
-
-  if environment == 'production'
-    var_path = 'var'
-  else
-    var_path = 'var_dev'
-  end
+  # Get the environment from Puppet
+  environment = Puppet[:environment]
+  var_path = 'variables'
 
   # look for the module in each directory in modulepath
   paths = Puppet::Module.modulepath(Puppet[:environment]).map do |dir|
