@@ -4,7 +4,7 @@
 
 The *get_var* function's purpose is threefold:
 
-* Use production and development data where appropriate
+* Use arbitrary environment data where appropriate and defaults otherwise
 * Not have passwords and other secret bits in subversion/git/whatever
 * Manage multiple similar configurations (same manifest, different systems)
 
@@ -16,7 +16,7 @@ The main interface from puppet is the *get_var* function.  There are two require
 
 The first parameter is which puppet module to examine for the requested data.  Data should be kept in the module where it's most used or most authoritative.
 
-The second parameter is the key to look up in that module.  It can contain periods to drill down into the YAML structure.  For instance:
+The second parameter is the key to look up in that module.  It can contain periods to drill down into the YAML structure.  The current puppet environment will be prepended to the key and if a value exists it is returned.  Otherwise a default value is returned from the YAML file.  For instance:
 
 Looking up "name" in this YAML would return "puppetmaster":
 
@@ -26,6 +26,12 @@ Looking up "nate.shell" in this YAML would return "bash":
 
     nate:
       shell: bash
+
+In the production puppet environment looking up "name" in this YAML would return "puppetmaster-production".  Any other environment will still return "puppetmaster":
+
+    name: puppetmaster
+	production:
+	  name: puppetmaster-production
 
 If the key ends with the word "keys", an attempt will be made to read the keys at that level in the YAML file.  For instance, given the following YAML:
 
@@ -58,13 +64,9 @@ If the key does have a colon, the part before the colon is treated as a filename
 
 will look for the 'foo' key in the `module/*var*/bar/baz.yml` file in production and the `module/*var_dev*/bar/baz.yml` file in development.
 
-### Development overrides
-
-When running in development mode, *get_var* will look in `/etc/puppet/var_dev` for files that override development values.  So, in the above lookup (for 'bar/baz:foo'), the file `/etc/puppet/var_dev/module/bar/baz.yml` will be checked before `module/var_dev/bar/baz.yml` in development mode.
-
-This directory is completely ignored in production mode.
-
 # The *get_secret* function
+
+THIS IS NOT CURRENTLY MODIFIED TO SUPPORT PUPPET ENVIRONMENTS LIKE *get_var*.
 
 The *get_secret* function is nearly identical to the *get_var* function, except it's designed for managing data that we'd like to keep a secret.  This includes passwords, ssh private keys, and ssl certificates, among other things.
 
@@ -87,12 +89,6 @@ Like *get_var*, if the key doesn't have a colon (':'), then the YAML file is mai
 will look for the 'foo' key in the `*/etc/puppet/secret*/module/main.yml` file in production and the `module/*secret_dev*/main.yml` file in development.
 
 And, like *get_var* if the key has a colon, the part before the colon is treated as a filename.
-
-# Configuration
-
-Both *get_var* and *get_secret* inspect the same file to figure out which mode they are in (development or production).  The file is `/etc/puppet/master.yml`.  The file contains only one key: `environment`.  The value is either "development" or "production".  If the file doesn't exist, "development" is assumed.
-
-    environment: production
 
 # Tips
 
