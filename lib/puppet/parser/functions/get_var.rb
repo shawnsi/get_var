@@ -43,10 +43,10 @@ Puppet::Parser::Functions::newfunction(:get_var, :type => :rvalue) do |vals|
     "#{dir}/#{modulename}/#{var_path}/#{path}.yml"
   end
 
-  values = paths.map do |module_secret_file|
-    # and see if it has a secret.yml file
-    if File.exists?(module_secret_file)
-      get_var_get_value(module_secret_file, modulename, key)
+  values = paths.map do |module_variable_file|
+    # and see if it has a variable yml file
+    if File.exists?(module_variable_file)
+      get_var_get_value(module_variable_file, modulename, key)
     end
   end
 
@@ -73,11 +73,7 @@ def get_var_get_value (yaml_file, modulename, identifier)
         else
 	  yaml_key.shift
           value = get_var_drill_down(YAML.load_file(yaml_file), yaml_key)
-          if value
-            return value
-          else
-            return nil
-          end
+	  return value
         end
       rescue Puppet::ParseError => e
         raise e
