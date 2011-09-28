@@ -69,6 +69,10 @@ def get_secret_get_value (yaml_file, modulename, identifier)
 end
 
 def get_clear_text_value (cipher_text)
-  clear_text = `echo '#{cipher_text}' | base64 -d | gpg -dq`
-  clear_text.strip
+  clear_text = `echo '#{cipher_text}' | base64 -id | gpg -dq`
+  if ($?.to_i == 0)
+    clear_text.strip
+  else
+    raise Puppet::ParseError, "Received return code #{$?.to_i} while decrypting secret value: #{cipher_text}"
+  end
 end
