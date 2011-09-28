@@ -54,7 +54,7 @@ Puppet::Parser::Functions::newfunction(:get_secret, :type => :rvalue) do |vals|
   values = values.select { |val| !val.nil? }
 
   # pull the first if there are any values left
-  return values[0] if !values.empty?
+  return get_clear_text_value(values[0]) if !values.empty?
   
   if !default
     raise Puppet::ParseError, "Unable to find secret value for module #{modulename} and key #{identifier}, tried #{report_path}"
@@ -66,4 +66,9 @@ end
 # Just call out to get_var_get_value as the logic is the same now
 def get_secret_get_value (yaml_file, modulename, identifier)
   get_var_get_value(yaml_file, modulename, identifier)
+end
+
+def get_clear_text_value (cipher_text)
+  clear_text = `echo '#{cipher_text}' | base64 -d | gpg -dq`
+  clear_text.strip
 end
